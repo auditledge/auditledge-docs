@@ -1,57 +1,60 @@
 # Quickstart
 
-Add a production-grade audit log to your SaaS in under 5 minutes.
+Get your first audit event into Auditledge in under 5 minutes.
+
+---
 
 ## 1. Create an account
 
-Go to [auditledge.com](https://auditledge.com) and sign up for free. No credit card required.
+Sign up at [auditledge.com/signup](https://auditledge.com/signup). No credit card required — the free tier includes 10,000 events/month.
 
-## 2. Get your API key
+## 2. Generate an API key
 
-From your dashboard, copy your API key.
+1. Go to [Dashboard → API Keys](https://auditledge.com/dashboard/keys)
+2. Click **New key**, give it a name
+3. Copy the key — it starts with `al_` and is shown only once
 
-## 3. Install the SDK
+## 3. Send your first event
 
 ```bash
-# JavaScript / Node.js
-npm install auditledge
-
-# Python
-pip install auditledge
-
-# PHP
-composer require auditledge/auditledge-php
-
-# Ruby
-gem install auditledge
-
-# Go
-go get github.com/auditledge/auditledge-go
+curl -X POST https://api.auditledge.com/v1/events \
+  -H "Authorization: Bearer al_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "actor":    { "id": "user_123", "name": "Alice" },
+    "action":   "invoice.deleted",
+    "resource": { "type": "invoice", "id": "inv_456" },
+    "organization_id": "org_789"
+  }'
 ```
 
-## 4. Log your first event
+A `201` response means the event is stored:
 
-```javascript
-const AuditLedge = require('auditledge');
-const client = new AuditLedge('your_api_key');
-
-await client.log({
-  actor: { id: 'user_123', name: 'Alice' },
-  action: 'invoice.deleted',
-  resource: { type: 'invoice', id: 'inv_456' },
-  organization_id: 'org_789'
-});
+```json
+{
+  "success": true,
+  "event": {
+    "id": "a1b2c3d4-...",
+    "timestamp": "2026-05-13T10:23:00.000Z",
+    "actor_id": "user_123",
+    "actor_name": "Alice",
+    "action": "invoice.deleted",
+    "resource_type": "invoice",
+    "resource_id": "inv_456",
+    "organization_id": "org_789"
+  }
+}
 ```
 
-That's it. Your audit event is stored, queryable, and retained for the duration of your plan.
+## 4. View it in the dashboard
 
-## 5. View your events
+Open [Dashboard → Events](https://auditledge.com/dashboard), connect your API key, and the event appears immediately. You can filter by actor, action, or date range, and export to CSV or JSON.
 
-Log in to your [Auditledge dashboard](https://auditledge.com/dashboard) to browse, filter, and export your audit events.
+---
 
 ## Next steps
 
-- [API Reference](../api-reference/events-log.md)
-- [Event Schema](../concepts/event-schema.md)
-- [Framework guides](../guides/)
-- [Pricing](https://auditledge.com/pricing)
+- [Authentication](authentication.md) — how API keys work and how to rotate them
+- [Sending your first event](first-event.md) — full field reference with examples
+- [Event schema](../concepts/event-schema.md) — all fields, types, and constraints
+- [Query events](../api-reference/events-query.md) — filtering and pagination

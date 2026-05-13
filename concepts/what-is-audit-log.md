@@ -1,60 +1,58 @@
-# What is an Audit Log?
+# What is an audit log?
 
-An audit log is an immutable, chronological record of events in your application — capturing **who did what, and when**.
+An audit log is an immutable, chronological record of "who did what, and when" inside your application.
 
-## Why your SaaS needs an audit log
+---
 
-Every SaaS product that sells to businesses will eventually be asked:
+## Why SaaS products need one
+
+Business customers ask for audit logs constantly:
 
 - "Who deleted that record?"
 - "Who changed the billing plan?"
-- "Who invited that user last Tuesday?"
-- "Can I see all activity for my account?"
+- "Who invited that user last week?"
 
-Enterprise customers expect this. Compliance frameworks (SOC 2, HIPAA, GDPR) often require it. And once your first enterprise customer asks for it, you need it immediately.
+It is both a trust feature and a compliance requirement. SOC 2, HIPAA, and GDPR all mandate some form of audit trail, and enterprise buyers will block a deal until it exists.
 
-## What a good audit log captures
+## What a good audit event captures
 
-Each event should record:
+| Field | Example | Purpose |
+|-------|---------|---------|
+| **Actor** | `Alice (user_123)` | Who did it |
+| **Action** | `invoice.deleted` | What happened |
+| **Resource** | `Invoice #1042 (inv_456)` | What was affected |
+| **Timestamp** | `2026-05-13T10:23:00Z` | When it happened |
+| **Organization** | `org_789` | Which tenant (for multi-tenant SaaS) |
+| **Metadata** | `{ "ip": "203.0.113.42" }` | Additional context |
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| `actor` | Who performed the action | `{ id: "user_123", name: "Alice" }` |
-| `action` | What they did | `invoice.deleted` |
-| `resource` | What was affected | `{ type: "invoice", id: "inv_456" }` |
-| `timestamp` | When it happened | `2026-04-14T10:23:00Z` |
-| `organization_id` | Which tenant | `org_789` |
-| `metadata` | Additional context | `{ ip: "192.168.1.1" }` |
+## Why it is hard to build yourself
 
-## The hard part isn't storing logs
+Storing rows in a Postgres table is easy. Making it production-grade is not:
 
-Storing audit events in a database table is straightforward. The hard parts are:
+- **Async ingestion** — logging must never block your main app thread
+- **Zero data loss** — a missing audit event is a compliance failure, not a bug
+- **Queryability at scale** — searching millions of events by actor, action, or date must stay fast
+- **Retention management** — old events need automatic expiry per-tenant, per-plan
+- **Immutability** — events must not be editable after creation
+- **Ongoing maintenance** — it is never truly done; requirements keep expanding
 
-- **Async logging** — never blocking your main application thread
-- **Zero data loss** — a lost audit event can be a compliance failure
-- **Queryability at scale** — filtering millions of events by actor, action, date range
-- **Retention management** — automatically expiring old events per your policy
-- **Immutability** — ensuring events can't be tampered with
+Developers who have built audit logs report spending days to a month on the initial build, then continuing to patch it afterwards.
 
-## Why use Auditledge instead of building it yourself
+## How Auditledge handles it
 
-Developers who have built audit logs in-house report spending **days to months** on initial implementation — and the work is never truly done. Every new compliance requirement or scale milestone means revisiting the implementation.
+You send one `POST` request per event. Auditledge handles storage, querying, retention, and the dashboard your team uses to investigate activity. No infrastructure to manage, no schema to maintain.
 
-Auditledge handles all of this for you:
-
-```javascript
-await client.log({
-  actor: { id: 'user_123', name: 'Alice' },
-  action: 'invoice.deleted',
-  resource: { type: 'invoice', id: 'inv_456' },
-  organization_id: 'org_789'
-});
+```bash
+curl -X POST https://api.auditledge.com/v1/events \
+  -H "Authorization: Bearer al_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "actor":    { "id": "user_123", "name": "Alice" },
+    "action":   "invoice.deleted",
+    "resource": { "type": "invoice", "id": "inv_456" },
+    "organization_id": "org_789"
+  }'
 ```
 
-One API call. That's it.
-
-## Related
-
-- [Quickstart](../getting-started/quickstart.md)
-- [Event Schema](./event-schema.md)
-- [Retention Policy](./retention.md)
+→ [Quickstart](../getting-started/quickstart.md)
+→ [Event schema](event-schema.md)
