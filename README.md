@@ -1,7 +1,5 @@
 # auditledge-docs
 
-Documentation source for [docs.auditledge.com](https://docs.auditledge.com).
-
 ## Structure
 
 ```
