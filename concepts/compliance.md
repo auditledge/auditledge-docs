@@ -68,9 +68,10 @@ org.settings_changed   org.sso_enabled
 
 | Plan | Retention |
 |------|-----------|
-| Starter | 90 days |
-| Growth | 1 year |
-| Enterprise | Custom (up to 7 years) |
+| Free | 14 days |
+| Starter | 1 year (365 days) |
+| Growth | 2 years (730 days) |
+| Pro | Custom |
 
 See [Retention Policy](retention) for details.
 
